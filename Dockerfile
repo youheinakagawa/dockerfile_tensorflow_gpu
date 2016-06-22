@@ -29,6 +29,13 @@ RUN echo "export LD_LIBRARY_PATH=/usr/local/cuda-7.5/targets/x86_64-linux/lib/st
 RUN apt-get -y update
 RUN apt-get -y install vim
 
+WORKDIR /root/
+RUN git clone https://github.com/neologd/mecab-ipadic-neologd
+WORKDIR /root/mecab-ipadic-neologd/
+RUN ./bin/install-mecab-ipadic-neologd -n -y
+
+RUN wget https://raw.githubusercontent.com/youheinakagawa/vimrc/master/.vimrc -O /root/.vimrc
+
 RUN rm -rf /var/lib/apt/lists/*
 
 ENTRYPOINT ["/bin/bash"]
