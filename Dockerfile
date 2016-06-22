@@ -4,7 +4,7 @@ RUN /bin/cp -f /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
 
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys E1DD270288B4E6030699E45FA1715D88E1DF1F24
 RUN echo 'deb http://ppa.launchpad.net/git-core/ppa/ubuntu trusty main' > /etc/apt/sources.list.d/git.list
-RUN apt-get update
+RUN apt-get update && apt-get -y upgrade
 RUN apt-get install -y language-pack-ja-base \
                        language-pack-ja \
                        ibus-mozc \
@@ -15,7 +15,7 @@ RUN apt-get install -y language-pack-ja-base \
 ENV LANG ja_JP.UTF-8
 ENV LC_ALL ja_JP.UTF-8
 ENV LC_CTYPE ja_JP.UTF-8
-RUN apt-get install -y git ccache curl wget mecab libmecab-dev mecab-ipadic aptitude
+RUN apt-get install -y build-essential make git ccache g++ gfortran curl wget mecab libmecab-dev mecab-ipadic aptitude
 
 ENV PATH /usr/lib/ccache:$PATH
 
@@ -54,7 +54,13 @@ RUN mv cudnn-6.5-linux-x64-v2/libcudnn.so /usr/local/cuda/lib64/.
 RUN mv cudnn-6.5-linux-x64-v2/libcudnn.so.6.5 /usr/local/cuda/lib64/.
 RUN mv cudnn-6.5-linux-x64-v2/libcudnn.so.6.5.48 /usr/local/cuda/lib64/.
 RUN mv cudnn-6.5-linux-x64-v2/libcudnn_static.a /usr/local/cuda/lib64/.
-
+RUN pip install -U "setuptools"
+RUN pip install -U "cython"
+RUN pip install -U "numpy<1.10"
+RUN pip install -U "h5py<2.6"
+RUN pip install -U "nose"
+RUN pip install -U "mock"
+RUN pip install -U "coverage"
 RUN pip install --upgrade https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow-0.9.0rc0-cp27-none-linux_x86_64.whl
 
 RUN echo "export LD_LIBRARY_PATH=/usr/local/cuda-7.5/lib64/stubs/:\$LD_LIBRARY_PATH" >> ~/.bashrc && ldconfig
