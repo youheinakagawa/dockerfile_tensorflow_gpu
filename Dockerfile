@@ -1,4 +1,4 @@
-FROM nvidia/cuda:cudnn
+FROM ubuntu:14.04
 
 RUN /bin/cp -f /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
 
@@ -15,16 +15,49 @@ RUN apt-get install -y language-pack-ja-base \
 ENV LANG ja_JP.UTF-8
 ENV LC_ALL ja_JP.UTF-8
 ENV LC_CTYPE ja_JP.UTF-8
+RUN apt-get install -y git ccache curl wget mecab libmecab-dev mecab-ipadic aptitude
+
+ENV PATH /usr/lib/ccache:$PATH
+
 RUN apt-get install -y --no-install-recommends python-pip python-dev
-RUN apt-get install -y git curl wget mecab libmecab-dev mecab-ipadic aptitude
 RUN aptitude install -y mecab-ipadic-utf8
 RUN apt-get install -y python-mecab
 
+WORKDIR /opt/nvidia
+RUN mkdir installers
+
+RUN curl -s -o cuda_7.5.18_linux.run http://developer.download.nvidia.com/compute/cuda/7.5/Prod/local_installers/cuda_7.5.18_linux.run
+
+RUN chmod +x cuda_7.5.18_linux.run && sync && \
+    ./cuda_7.5.18_linux.run -extract=`pwd`/installers
+RUN ./installers/cuda-linux64-rel-7.5.18-19867135.run -noprompt && \
+    cd / && \
+    rm -rf /opt/nvidia
+
+RUN echo "/usr/local/cuda/lib" >> /etc/ld.so.conf.d/cuda.conf &&     echo "/usr/local/cuda/lib64" >> /etc/ld.so.conf.d/cuda.conf &&     ldconfig
+
+ENV CUDA_ROOT /usr/local/cuda
+ENV PATH $PATH:$CUDA_ROOT/bin
+ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:$CUDA_ROOT/lib64:$CUDA_ROOT/lib:/usr/local/nvidia/lib64:/usr/local/nvidia/lib
+ENV LIBRARY_PATH /usr/local/nvidia/lib64:/usr/local/nvidia/lib:/usr/local/cuda/lib64/stubs$LIBRARY_PATH
+
+ENV CUDA_VERSION 7.5
+LABEL com.nvidia.volumes.needed="nvidia_driver"
+LABEL com.nvidia.cuda.version="7.5"
+
+WORKDIR /opt/cudnn
+RUN curl -s -o cudnn-6.5-linux-x64-v2.tgz http://developer.download.nvidia.com/compute/redist/cudnn/v2/cudnn-6.5-linux-x64-v2.tgz
+RUN tar -xzf cudnn-6.5-linux-x64-v2.tgz
+RUN rm cudnn-6.5-linux-x64-v2.tgz
+RUN cp cudnn-6.5-linux-x64-v2/cudnn.h /usr/local/cuda/include/.
+RUN mv cudnn-6.5-linux-x64-v2/libcudnn.so /usr/local/cuda/lib64/.
+RUN mv cudnn-6.5-linux-x64-v2/libcudnn.so.6.5 /usr/local/cuda/lib64/.
+RUN mv cudnn-6.5-linux-x64-v2/libcudnn.so.6.5.48 /usr/local/cuda/lib64/.
+RUN mv cudnn-6.5-linux-x64-v2/libcudnn_static.a /usr/local/cuda/lib64/.
+
 RUN pip install --upgrade https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow-0.9.0rc0-cp27-none-linux_x86_64.whl
 
-RUN export LD_LIBRARY_PATH=/usr/local/cuda-7.5/targets/x86_64-linux/lib/stubs/:$LD_LIBRARY_PATH
-
-RUN echo "export LD_LIBRARY_PATH=/usr/local/cuda-7.5/targets/x86_64-linux/lib/stubs/:$LD_LIBRARY_PATH" >> ~/.bashrc
+RUN echo "export LD_LIBRARY_PATH=/usr/local/cuda-7.5/lib64/stubs/:\$LD_LIBRARY_PATH" >> ~/.bashrc && ldconfig
 
 RUN apt-get -y update
 RUN apt-get -y install vim
