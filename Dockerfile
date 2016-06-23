@@ -57,7 +57,7 @@ RUN mv cudnn-6.5-linux-x64-v2/libcudnn_static.a /usr/local/cuda/lib64/.
 RUN pip install -U "setuptools"
 RUN pip install -U "cython"
 RUN pip install -U "numpy<1.10"
-RUN pip install -U "h5py<2.6"
+#RUN pip install -U "h5py<2.6"
 RUN pip install -U "nose"
 RUN pip install -U "mock"
 RUN pip install -U "coverage"
